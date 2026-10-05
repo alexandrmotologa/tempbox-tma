@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Trash2, Copy, Check, Terminal, Code2 } from 'lucide-react';
+import { ArrowLeft, Trash2, Copy, Check, Terminal, Code2, Sliders, Download } from 'lucide-react';
 import type { WebhookRequest } from '@tempbox/shared-types';
+import { sounds } from '../lib/sounds.js';
 
 interface WebhookViewerProps {
   webhook: WebhookRequest;
   onBack: () => void;
   onDelete: (id: string) => void;
+  onOpenMockConfig?: () => void;
+  onExportJson?: () => void;
   onHaptic?: (type: 'light' | 'medium' | 'success') => void;
 }
 
@@ -13,6 +16,8 @@ export const WebhookViewer: React.FC<WebhookViewerProps> = ({
   webhook,
   onBack,
   onDelete,
+  onOpenMockConfig,
+  onExportJson,
   onHaptic
 }) => {
   const [copiedBody, setCopiedBody] = useState(false);
@@ -31,6 +36,7 @@ export const WebhookViewer: React.FC<WebhookViewerProps> = ({
   };
 
   const handleCopyBody = () => {
+    sounds.playCopySuccess();
     navigator.clipboard.writeText(
       webhook.body ? JSON.stringify(webhook.body, null, 2) : webhook.rawBody
     );
@@ -40,6 +46,7 @@ export const WebhookViewer: React.FC<WebhookViewerProps> = ({
   };
 
   const handleCopyCurl = () => {
+    sounds.playCopySuccess();
     navigator.clipboard.writeText(getCurlCommand());
     setCopiedCurl(true);
     onHaptic?.('success');
@@ -56,6 +63,7 @@ export const WebhookViewer: React.FC<WebhookViewerProps> = ({
       <div className="flex items-center justify-between p-3 border-b border-slate-800 bg-slate-900/80 sticky top-0 z-10 backdrop-blur">
         <button
           onClick={() => {
+            sounds.playTap();
             onHaptic?.('light');
             onBack();
           }}
@@ -65,19 +73,50 @@ export const WebhookViewer: React.FC<WebhookViewerProps> = ({
           <span>Back to Webhooks</span>
         </button>
 
-        <button
-          onClick={() => {
-            onHaptic?.('medium');
-            if (window.confirm('Delete this webhook request?')) {
-              onDelete(webhook.id);
-              onBack();
-            }
-          }}
-          className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
-          title="Delete webhook"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-1.5">
+          {onOpenMockConfig && (
+            <button
+              onClick={() => {
+                sounds.playTap();
+                onHaptic?.('light');
+                onOpenMockConfig();
+              }}
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-medium transition-colors"
+              title="Configure mock response"
+            >
+              <Sliders className="w-3.5 h-3.5" />
+              <span>Mock</span>
+            </button>
+          )}
+
+          {onExportJson && (
+            <button
+              onClick={() => {
+                sounds.playTap();
+                onHaptic?.('light');
+                onExportJson();
+              }}
+              className="p-1.5 text-slate-400 hover:text-sky-300 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors border border-slate-700/60"
+              title="Export JSON"
+            >
+              <Download className="w-3.5 h-3.5" />
+            </button>
+          )}
+
+          <button
+            onClick={() => {
+              onHaptic?.('medium');
+              if (window.confirm('Delete this webhook request?')) {
+                onDelete(webhook.id);
+                onBack();
+              }
+            }}
+            className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+            title="Delete webhook"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       <div className="p-4 space-y-4 overflow-y-auto pb-12">

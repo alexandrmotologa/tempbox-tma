@@ -77,6 +77,18 @@ export const EmailCard: React.FC<EmailCardProps> = ({ email, onClick, onDelete, 
           <OtpPill otp={email.extractedOtp} size="sm" />
         </div>
       )}
+
+      {/* Instant Magic Link pill preview */}
+      {email.extractedMagicLink && !email.extractedOtp && (
+        <div className="mt-2.5 pt-2 border-t border-slate-800/60 flex items-center justify-between text-xs">
+          <span className="text-[11px] text-emerald-400/80 font-medium">
+            Activation Link:
+          </span>
+          <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 truncate max-w-[180px]">
+            {email.extractedMagicLink.label || 'Verify Email'}
+          </span>
+        </div>
+      )}
     </div>
   );
 };

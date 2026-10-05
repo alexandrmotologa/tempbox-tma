@@ -2,7 +2,8 @@ import type {
   CreateMailboxRequest,
   MailboxOverviewResponse,
   Mailbox,
-  SimulationPayload
+  SimulationPayload,
+  WebhookResponseConfig
 } from '@tempbox/shared-types';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
@@ -60,6 +61,21 @@ export const api = {
     fetchJson<{ success: boolean }>(`/api/mailboxes/${mailboxId}/webhooks/${webhookId}`, {
       method: 'DELETE'
     }),
+
+  updateWebhookResponseConfig: (mailboxId: string, config: WebhookResponseConfig) =>
+    fetchJson<{ success: boolean; responseConfig: WebhookResponseConfig }>(
+      `/api/mailboxes/${mailboxId}/webhook-response`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(config)
+      }
+    ),
+
+  getRawEmailUrl: (mailboxId: string, messageId: string) =>
+    `${API_BASE}/api/mailboxes/${mailboxId}/messages/${messageId}/raw`,
+
+  getExportUrl: (mailboxId: string) =>
+    `${API_BASE}/api/mailboxes/${mailboxId}/export`,
 
   simulateEmail: (payload: SimulationPayload) =>
     fetchJson<{ success: boolean; message: any }>('/api/simulations/email', {

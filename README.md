@@ -32,12 +32,18 @@ Disposable email and webhook inbox Telegram Mini App and Bot with instant push n
 ## Features
 
 - **1-Tap Disposable Inboxes:** Generate random or custom alias email addresses on your domain (e.g. `alex_test@tempbox.dev`).
+- **Multi-Mailbox Management:** Keep up to 5 disposable inboxes active simultaneously and switch between them in one tap.
 - **Instant Webhook Endpoints:** Unique URLs (`https://tempbox.dev/h/<token>`) that record headers, query parameters, and raw or JSON payloads for any HTTP method.
-- **Automatic OTP Extraction:** Heuristic engine detects 4-to-8 digit verification codes from incoming emails and presents a monospace copy button.
+- **Mock Webhook Responses:** Set custom HTTP response codes (200, 201, 400, 429, 500), simulated latency delays, and mock JSON response bodies.
+- **Automatic OTP & Magic Link Detection:** Heuristic engine extracts verification codes (4 to 8 digits) and activation magic links directly from email HTML and text.
+- **Instant Search & Filters:** Search by subject, sender, OTP code, path, or payload with filter chips for unread messages, attachments, or code-only emails.
+- **QR Code Sharing:** Generate crisp QR codes for your email address or webhook endpoint to test across mobile devices.
+- **Data Export & Raw Email:** Download complete messages as standard RFC 822 `.eml` files or export all captured webhooks to JSON.
 - **Telegram Push Notifications:** Real-time Telegram messages when emails or webhooks arrive, complete with direct verification codes and Mini App deep links.
 - **Sandboxed Email Reader:** HTML rendering takes place inside an isolated iframe with `sandbox="allow-popups"` (scripts disabled) to protect against tracking scripts and redirects.
-- **Configurable Lifespan & Auto-Purge:** Inboxes expire after 2 hours by default. Users can extend by 1 hour or trigger an immediate purge of all mailbox contents.
-- **Built-in Test Lab:** One-click simulation for GitHub OTP emails, Google security alerts, and Stripe webhook events.
+- **Tactile Audio & Haptics:** Zero-dependency Web Audio chimes for new arrivals and clipboard copies with Telegram haptic feedback.
+- **Configurable Lifespan & Auto-Purge:** Inboxes expire after 2 hours by default. Users can extend by 1 hour, trigger an immediate purge, or enable zero-trace exit on close.
+- **Built-in Test Lab:** One-click simulation for GitHub OTP emails, Supabase magic links, Google security alerts, and Stripe webhook events.
 
 ## Monorepo Layout
 

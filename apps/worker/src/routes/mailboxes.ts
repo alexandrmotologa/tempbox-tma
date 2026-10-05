@@ -1,6 +1,12 @@
 import { Hono } from 'hono';
 import type { D1DatabaseCompat } from '../db/database.js';
-import type { Mailbox, CreateMailboxRequest, EmailMessage, WebhookRequest } from '@tempbox/shared-types';
+import type {
+  Mailbox,
+  CreateMailboxRequest,
+  EmailMessage,
+  WebhookRequest,
+  WebhookResponseConfig
+} from '@tempbox/shared-types';
 
 interface Env {
   DB: D1DatabaseCompat;
@@ -11,7 +17,6 @@ interface Env {
 
 export const mailboxRouter = new Hono<{ Bindings: Env }>();
 
-// Helper to generate random alphanumeric slug
 function generateSlug(length = 7): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
   let res = '';
@@ -21,7 +26,6 @@ function generateSlug(length = 7): string {
   return res;
 }
 
-// Helper to generate secure hex token
 function generateToken(): string {
   const chars = '0123456789abcdef';
   let token = '';
@@ -55,7 +59,6 @@ mailboxRouter.post('/', async (c) => {
   const baseUrl = c.env.BASE_URL || new URL(c.req.url).origin;
   const webhookUrl = `${baseUrl}/h/${token}`;
 
-  // Check if alias is taken
   const existing = await db.prepare('SELECT id FROM mailboxes WHERE address = ?').bind(address).first();
   if (existing) {
     return c.json({ error: 'Mailbox address already taken. Please choose another alias.' }, 409);
@@ -64,8 +67,8 @@ mailboxRouter.post('/', async (c) => {
   await db
     .prepare(
       `INSERT INTO mailboxes (
-        id, address, alias, domain, token, webhook_url, telegram_user_id, created_at, expires_at, ttl_seconds, active
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`
+        id, address, alias, domain, token, webhook_url, telegram_user_id, created_at, expires_at, ttl_seconds, active, response_config_json
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)`
     )
     .bind(
       id,
@@ -77,7 +80,8 @@ mailboxRouter.post('/', async (c) => {
       body.telegramUserId ? String(body.telegramUserId) : null,
       now,
       expiresAt,
-      ttlSeconds
+      ttlSeconds,
+      null
     )
     .run();
 
@@ -120,6 +124,10 @@ mailboxRouter.get('/:id', async (c) => {
     .bind(id)
     .first<{ count: number }>();
 
+  const responseConfig: WebhookResponseConfig | undefined = row.response_config_json
+    ? JSON.parse(String(row.response_config_json))
+    : undefined;
+
   const mailbox: Mailbox = {
     id: String(row.id),
     address: String(row.address),
@@ -133,13 +141,14 @@ mailboxRouter.get('/:id', async (c) => {
     ttlSeconds: Number(row.ttl_seconds),
     active: Boolean(row.active),
     emailCount: emailCountRow?.count ?? 0,
-    webhookCount: webhookCountRow?.count ?? 0
+    webhookCount: webhookCountRow?.count ?? 0,
+    responseConfig
   };
 
   return c.json({ mailbox });
 });
 
-// GET /api/mailboxes/:id/overview - Get mailbox + messages + webhooks in one fast call
+// GET /api/mailboxes/:id/overview - Get mailbox + messages + webhooks + multi-inbox list
 mailboxRouter.get('/:id/overview', async (c) => {
   const db = c.env.DB;
   const id = c.req.param('id');
@@ -158,6 +167,32 @@ mailboxRouter.get('/:id/overview', async (c) => {
     .prepare('SELECT * FROM webhook_requests WHERE mailbox_id = ? ORDER BY received_at DESC LIMIT 50')
     .bind(id)
     .all<Record<string, unknown>>();
+
+  // Fetch sibling mailboxes for the same Telegram user if attached
+  let userMailboxes: Mailbox[] = [];
+  if (row.telegram_user_id) {
+    const listRows = await db
+      .prepare(
+        'SELECT id, address, alias, domain, expires_at, ttl_seconds, active FROM mailboxes WHERE telegram_user_id = ? AND active = 1 ORDER BY created_at DESC LIMIT 10'
+      )
+      .bind(row.telegram_user_id)
+      .all<Record<string, unknown>>();
+
+    userMailboxes = (listRows.results || []).map((m) => ({
+      id: String(m.id),
+      address: String(m.address),
+      alias: String(m.alias),
+      domain: String(m.domain),
+      token: '',
+      webhookUrl: '',
+      createdAt: 0,
+      expiresAt: Number(m.expires_at),
+      ttlSeconds: Number(m.ttl_seconds),
+      active: true,
+      emailCount: 0,
+      webhookCount: 0
+    }));
+  }
 
   const emails: EmailMessage[] = (emailRows.results || []).map((e) => ({
     id: String(e.id),
@@ -183,6 +218,14 @@ mailboxRouter.get('/:id/overview', async (c) => {
           contextSnippet: e.otp_snippet ? String(e.otp_snippet) : undefined
         }
       : undefined,
+    extractedMagicLink: e.magic_link_url
+      ? {
+          url: String(e.magic_link_url),
+          label: e.magic_link_label ? String(e.magic_link_label) : 'Verification Link',
+          domain: e.magic_link_domain ? String(e.magic_link_domain) : 'link',
+          confidence: 0.95
+        }
+      : undefined,
     receivedAt: Number(e.received_at),
     expiresAt: Number(e.expires_at),
     isRead: Boolean(e.is_read)
@@ -203,6 +246,10 @@ mailboxRouter.get('/:id/overview', async (c) => {
     expiresAt: Number(w.expires_at)
   }));
 
+  const responseConfig: WebhookResponseConfig | undefined = row.response_config_json
+    ? JSON.parse(String(row.response_config_json))
+    : undefined;
+
   const mailbox: Mailbox = {
     id: String(row.id),
     address: String(row.address),
@@ -216,10 +263,60 @@ mailboxRouter.get('/:id/overview', async (c) => {
     ttlSeconds: Number(row.ttl_seconds),
     active: Boolean(row.active),
     emailCount: emails.length,
-    webhookCount: webhooks.length
+    webhookCount: webhooks.length,
+    responseConfig
   };
 
-  return c.json({ mailbox, emails, webhooks });
+  return c.json({ mailbox, emails, webhooks, userMailboxes });
+});
+
+// PUT /api/mailboxes/:id/webhook-response - Configure custom mock response for incoming webhooks
+mailboxRouter.put('/:id/webhook-response', async (c) => {
+  const db = c.env.DB;
+  const id = c.req.param('id');
+  const body: WebhookResponseConfig = await c.req.json();
+
+  const configJson = JSON.stringify({
+    statusCode: Number(body.statusCode) || 200,
+    contentType: body.contentType || 'application/json',
+    responseBody: body.responseBody || '{"success": true}',
+    delayMs: Math.min(5000, Math.max(0, Number(body.delayMs) || 0))
+  });
+
+  await db.prepare('UPDATE mailboxes SET response_config_json = ? WHERE id = ?').bind(configJson, id).run();
+
+  return c.json({ success: true, responseConfig: JSON.parse(configJson) });
+});
+
+// GET /api/mailboxes/:id/export - Export entire mailbox as portable JSON
+mailboxRouter.get('/:id/export', async (c) => {
+  const db = c.env.DB;
+  const id = c.req.param('id');
+
+  const row = await db.prepare('SELECT * FROM mailboxes WHERE id = ?').bind(id).first<Record<string, unknown>>();
+  if (!row) {
+    return c.json({ error: 'Mailbox not found' }, 404);
+  }
+
+  const emails = await db
+    .prepare('SELECT * FROM email_messages WHERE mailbox_id = ? ORDER BY received_at DESC')
+    .bind(id)
+    .all();
+
+  const webhooks = await db
+    .prepare('SELECT * FROM webhook_requests WHERE mailbox_id = ? ORDER BY received_at DESC')
+    .bind(id)
+    .all();
+
+  const exportData = {
+    exportedAt: new Date().toISOString(),
+    mailbox: row,
+    emails: emails.results,
+    webhooks: webhooks.results
+  };
+
+  c.header('Content-Disposition', `attachment; filename="tempbox-${row.alias}-export.json"`);
+  return c.json(exportData);
 });
 
 // POST /api/mailboxes/:id/extend - Extend mailbox TTL

@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import type { D1DatabaseCompat } from '../db/database.js';
 import type { EmailMessage, SimulationPayload } from '@tempbox/shared-types';
 import { extractOtp } from '../services/otp_extractor.js';
+import { extractMagicLink } from '../services/magic_link_extractor.js';
 import { sendTelegramPushNotification } from '../services/telegram_notifier.js';
 
 interface Env {
@@ -63,6 +64,24 @@ simulationRouter.post('/email', async (c) => {
         <p style="color: #5f6368; font-size: 12px;">Google will never ask you for this code.</p>
       </div>
     `;
+  } else if (body.template === 'magic_link') {
+    fromName = 'Supabase Auth';
+    fromAddress = 'noreply@mail.app.supabase.io';
+    subject = 'Confirm your Signup on Supabase';
+    const magicUrl =
+      body.customData?.magicLinkUrl ||
+      `https://app.supabase.com/auth/v1/verify?token=pk_${Date.now()}_auth&type=signup&redirect_to=https://app.supabase.com`;
+    text = `Hey there,\n\nFollow this link to confirm your user account:\n\n${magicUrl}\n\nIf you did not make this request, please ignore this email.`;
+    html = `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 540px; margin: 0 auto; padding: 24px; border: 1px solid #27272a; background: #09090b; color: #fafafa; border-radius: 12px;">
+        <h2 style="color: #22c55e; margin-bottom: 12px;">Confirm your Supabase Account</h2>
+        <p style="color: #a1a1aa; font-size: 14px; line-height: 1.6;">Click the button below to verify your email address and activate your workspace.</p>
+        <div style="margin: 28px 0; text-align: center;">
+          <a href="${magicUrl}" style="background-color: #22c55e; color: #000; padding: 12px 24px; font-weight: 600; text-decoration: none; border-radius: 8px; display: inline-block;">Confirm Email Address</a>
+        </div>
+        <p style="color: #71717a; font-size: 12px;">Link valid for 1 hour. Never forward this link to anyone.</p>
+      </div>
+    `;
   } else if (body.template === 'custom_email' && body.customData) {
     fromName = body.customData.from || 'Custom Service';
     fromAddress = `${fromName.toLowerCase().replace(/\s+/g, '')}@example.com`;
@@ -72,16 +91,17 @@ simulationRouter.post('/email', async (c) => {
     html = `<div style="font-family: sans-serif; padding: 20px;"><h3>Verification Notice</h3><p>${text}</p><h1 style="font-family: monospace; color: #2563eb;">${code}</h1></div>`;
   }
 
-  // Extract OTP
+  // Extract OTP & Magic Link
   const extractedOtp = extractOtp(text, subject);
+  const extractedMagicLink = extractMagicLink(html, text);
 
   await db
     .prepare(
       `INSERT INTO email_messages (
         id, mailbox_id, from_name, from_address, to_addresses, subject, text_content, html_content,
         headers_json, spf, dkim, dmarc, attachments_json, otp_code, otp_kind, otp_confidence, otp_snippet,
-        received_at, expires_at, is_read
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`
+        magic_link_url, magic_link_label, magic_link_domain, received_at, expires_at, is_read
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`
     )
     .bind(
       id,
@@ -106,6 +126,9 @@ simulationRouter.post('/email', async (c) => {
       extractedOtp?.kind || null,
       extractedOtp?.confidence || null,
       extractedOtp?.contextSnippet || null,
+      extractedMagicLink?.url || null,
+      extractedMagicLink?.label || null,
+      extractedMagicLink?.domain || null,
       now,
       expiresAt
     )
@@ -150,6 +173,7 @@ simulationRouter.post('/email', async (c) => {
     dmarc: 'pass',
     attachments: [],
     extractedOtp,
+    extractedMagicLink,
     receivedAt: now,
     expiresAt,
     isRead: false

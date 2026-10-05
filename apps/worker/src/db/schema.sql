@@ -11,7 +11,8 @@ CREATE TABLE IF NOT EXISTS mailboxes (
   created_at INTEGER NOT NULL,
   expires_at INTEGER NOT NULL,
   ttl_seconds INTEGER NOT NULL,
-  active INTEGER NOT NULL DEFAULT 1
+  active INTEGER NOT NULL DEFAULT 1,
+  response_config_json TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_mailboxes_address ON mailboxes(address);
@@ -37,6 +38,9 @@ CREATE TABLE IF NOT EXISTS email_messages (
   otp_kind TEXT,
   otp_confidence REAL,
   otp_snippet TEXT,
+  magic_link_url TEXT,
+  magic_link_label TEXT,
+  magic_link_domain TEXT,
   received_at INTEGER NOT NULL,
   expires_at INTEGER NOT NULL,
   is_read INTEGER NOT NULL DEFAULT 0,

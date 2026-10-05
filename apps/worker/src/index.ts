@@ -9,6 +9,7 @@ import { simulationRouter } from './routes/simulations.js';
 import { telegramRouter } from './routes/telegram.js';
 import { parseRawEmail } from './services/email_parser.js';
 import { extractOtp } from './services/otp_extractor.js';
+import { extractMagicLink } from './services/magic_link_extractor.js';
 import { sendTelegramPushNotification } from './services/telegram_notifier.js';
 import { purgeExpiredRecords } from './services/ttl_manager.js';
 
@@ -102,8 +103,9 @@ export async function handleCloudflareEmail(message: any, env: Env) {
   const now = Date.now();
   const expiresAt = Number(mailbox.expires_at) || now + 3600 * 1000;
 
-  // Extract OTP
+  // Extract OTP & Magic Link
   const extractedOtp = extractOtp(parsed.text || parsed.html, parsed.subject);
+  const extractedMagicLink = extractMagicLink(parsed.html, parsed.text);
 
   // Insert into DB
   await db
@@ -111,8 +113,8 @@ export async function handleCloudflareEmail(message: any, env: Env) {
       `INSERT INTO email_messages (
         id, mailbox_id, from_name, from_address, to_addresses, subject, text_content, html_content,
         headers_json, spf, dkim, dmarc, attachments_json, otp_code, otp_kind, otp_confidence, otp_snippet,
-        received_at, expires_at, is_read
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`
+        magic_link_url, magic_link_label, magic_link_domain, received_at, expires_at, is_read
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`
     )
     .bind(
       id,
@@ -132,6 +134,9 @@ export async function handleCloudflareEmail(message: any, env: Env) {
       extractedOtp?.kind || null,
       extractedOtp?.confidence || null,
       extractedOtp?.contextSnippet || null,
+      extractedMagicLink?.url || null,
+      extractedMagicLink?.label || null,
+      extractedMagicLink?.domain || null,
       now,
       expiresAt
     )

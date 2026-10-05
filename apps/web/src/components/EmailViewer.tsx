@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Trash2, Paperclip, ShieldCheck, ShieldAlert, Code, FileText, Layout } from 'lucide-react';
+import { ArrowLeft, Trash2, Paperclip, ShieldCheck, ShieldAlert, Code, FileText, Layout, Download } from 'lucide-react';
 import type { EmailMessage } from '@tempbox/shared-types';
 import { OtpPill } from './OtpPill.js';
+import { MagicLinkPill } from './MagicLinkPill.js';
+import { sounds } from '../lib/sounds.js';
+import { api } from '../lib/api.js';
 
 interface EmailViewerProps {
   email: EmailMessage;
@@ -43,12 +46,23 @@ export const EmailViewer: React.FC<EmailViewerProps> = ({ email, onBack, onDelet
     </html>
   `;
 
+  const handleDownloadEml = () => {
+    sounds.playTap();
+    onHaptic?.('light');
+    const url = api.getRawEmailUrl(email.mailboxId, email.id);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${email.subject.replace(/[^a-z0-9_-]/gi, '_')}.eml`;
+    a.click();
+  };
+
   return (
     <div className="flex flex-col h-full bg-slate-950 text-slate-100">
       {/* Top Navbar */}
       <div className="flex items-center justify-between p-3 border-b border-slate-800 bg-slate-900/80 sticky top-0 z-10 backdrop-blur">
         <button
           onClick={() => {
+            sounds.playTap();
             onHaptic?.('light');
             onBack();
           }}
@@ -58,19 +72,30 @@ export const EmailViewer: React.FC<EmailViewerProps> = ({ email, onBack, onDelet
           <span>Back to Inbox</span>
         </button>
 
-        <button
-          onClick={() => {
-            onHaptic?.('medium');
-            if (window.confirm('Delete this email?')) {
-              onDelete(email.id);
-              onBack();
-            }
-          }}
-          className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
-          title="Delete message"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={handleDownloadEml}
+            className="flex items-center gap-1 px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-sky-300 rounded-lg text-xs font-medium transition-colors border border-slate-700/60"
+            title="Download raw .EML file"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>.EML</span>
+          </button>
+
+          <button
+            onClick={() => {
+              onHaptic?.('medium');
+              if (window.confirm('Delete this email?')) {
+                onDelete(email.id);
+                onBack();
+              }
+            }}
+            className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+            title="Delete message"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       <div className="p-4 space-y-4 overflow-y-auto pb-12">
@@ -121,14 +146,35 @@ export const EmailViewer: React.FC<EmailViewerProps> = ({ email, onBack, onDelet
         {email.extractedOtp && (
           <OtpPill
             otp={email.extractedOtp}
-            onCopy={() => onHaptic?.('medium')}
+            onCopy={() => {
+              sounds.playCopySuccess();
+              onHaptic?.('medium');
+            }}
+          />
+        )}
+
+        {/* 1-Tap Magic Link card if available */}
+        {email.extractedMagicLink && (
+          <MagicLinkPill
+            magicLink={email.extractedMagicLink}
+            onCopy={() => {
+              sounds.playCopySuccess();
+              onHaptic?.('medium');
+            }}
+            onOpen={() => {
+              sounds.playTap();
+              onHaptic?.('light');
+            }}
           />
         )}
 
         {/* View Mode Toggle */}
         <div className="flex items-center gap-1 p-1 bg-slate-900 rounded-lg border border-slate-800 text-xs">
           <button
-            onClick={() => setViewMode('html')}
+            onClick={() => {
+              sounds.playTap();
+              setViewMode('html');
+            }}
             className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md font-medium transition-colors ${
               viewMode === 'html' ? 'bg-sky-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
             }`}
@@ -138,7 +184,10 @@ export const EmailViewer: React.FC<EmailViewerProps> = ({ email, onBack, onDelet
           </button>
 
           <button
-            onClick={() => setViewMode('text')}
+            onClick={() => {
+              sounds.playTap();
+              setViewMode('text');
+            }}
             className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md font-medium transition-colors ${
               viewMode === 'text' ? 'bg-sky-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
             }`}
@@ -148,7 +197,10 @@ export const EmailViewer: React.FC<EmailViewerProps> = ({ email, onBack, onDelet
           </button>
 
           <button
-            onClick={() => setViewMode('headers')}
+            onClick={() => {
+              sounds.playTap();
+              setViewMode('headers');
+            }}
             className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md font-medium transition-colors ${
               viewMode === 'headers' ? 'bg-sky-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
             }`}

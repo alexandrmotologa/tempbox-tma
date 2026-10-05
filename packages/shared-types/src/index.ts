@@ -8,6 +8,20 @@ export interface ExtractedOtp {
   contextSnippet?: string;
 }
 
+export interface ExtractedMagicLink {
+  url: string;
+  label?: string;
+  domain: string;
+  confidence: number;
+}
+
+export interface WebhookResponseConfig {
+  statusCode: number;
+  contentType?: string;
+  responseBody?: string;
+  delayMs?: number;
+}
+
 export interface EmailAttachment {
   filename: string;
   mimeType: string;
@@ -33,6 +47,7 @@ export interface EmailMessage {
   dmarc?: 'pass' | 'fail' | 'softfail' | 'none';
   attachments: EmailAttachment[];
   extractedOtp?: ExtractedOtp;
+  extractedMagicLink?: ExtractedMagicLink;
   receivedAt: number; // Unix timestamp in ms
   expiresAt: number; // Unix timestamp in ms
   isRead: boolean;
@@ -67,6 +82,7 @@ export interface Mailbox {
   active: boolean;
   emailCount: number;
   webhookCount: number;
+  responseConfig?: WebhookResponseConfig;
 }
 
 export interface CreateMailboxRequest {
@@ -84,6 +100,7 @@ export interface MailboxOverviewResponse {
   mailbox: Mailbox;
   emails: EmailMessage[];
   webhooks: WebhookRequest[];
+  userMailboxes?: Mailbox[];
 }
 
 export interface TelegramNotificationPayload {
@@ -93,6 +110,7 @@ export interface TelegramNotificationPayload {
   subject?: string;
   sender?: string;
   otpCode?: string;
+  magicLinkUrl?: string;
   previewText?: string;
   messageId: string;
   deepLinkUrl: string;
@@ -100,12 +118,13 @@ export interface TelegramNotificationPayload {
 
 export interface SimulationPayload {
   mailboxId: string;
-  template: 'github_otp' | 'google_security' | 'stripe_webhook' | 'custom_email' | 'custom_webhook';
+  template: 'github_otp' | 'google_security' | 'stripe_webhook' | 'magic_link' | 'custom_email' | 'custom_webhook';
   customData?: {
     from?: string;
     subject?: string;
     code?: string;
     body?: string;
+    magicLinkUrl?: string;
     jsonPayload?: Record<string, unknown>;
   };
 }

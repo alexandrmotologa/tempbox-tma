@@ -42,12 +42,56 @@ messageRouter.get('/', async (c) => {
           contextSnippet: e.otp_snippet ? String(e.otp_snippet) : undefined
         }
       : undefined,
+    extractedMagicLink: e.magic_link_url
+      ? {
+          url: String(e.magic_link_url),
+          label: e.magic_link_label ? String(e.magic_link_label) : 'Verification Link',
+          domain: e.magic_link_domain ? String(e.magic_link_domain) : 'link',
+          confidence: 0.95
+        }
+      : undefined,
     receivedAt: Number(e.received_at),
     expiresAt: Number(e.expires_at),
     isRead: Boolean(e.is_read)
   }));
 
   return c.json({ emails });
+});
+
+// GET /api/mailboxes/:id/messages/:messageId/raw - Download raw .EML file
+messageRouter.get('/:messageId/raw', async (c) => {
+  const db = c.env.DB;
+  const mailboxId = c.req.param('id');
+  const messageId = c.req.param('messageId');
+
+  const row = await db
+    .prepare('SELECT * FROM email_messages WHERE id = ? AND mailbox_id = ?')
+    .bind(messageId, mailboxId)
+    .first<Record<string, unknown>>();
+
+  if (!row) {
+    return c.json({ error: 'Message not found' }, 404);
+  }
+
+  const from = row.from_name ? `"${row.from_name}" <${row.from_address}>` : String(row.from_address);
+  const to = JSON.parse(String(row.to_addresses || '[]')).join(', ');
+  const subject = String(row.subject);
+  const date = new Date(Number(row.received_at)).toUTCString();
+
+  const emlContent = [
+    `From: ${from}`,
+    `To: ${to}`,
+    `Subject: ${subject}`,
+    `Date: ${date}`,
+    'MIME-Version: 1.0',
+    'Content-Type: text/html; charset=UTF-8',
+    '',
+    row.html_content || row.text_content || ''
+  ].join('\r\n');
+
+  c.header('Content-Type', 'message/rfc822');
+  c.header('Content-Disposition', `attachment; filename="message-${messageId}.eml"`);
+  return c.body(emlContent);
 });
 
 // GET /api/mailboxes/:id/messages/:messageId
@@ -90,6 +134,14 @@ messageRouter.get('/:messageId', async (c) => {
           kind: (row.otp_kind as 'numeric' | 'alphanumeric') || 'numeric',
           confidence: Number(row.otp_confidence || 0.9),
           contextSnippet: row.otp_snippet ? String(row.otp_snippet) : undefined
+        }
+      : undefined,
+    extractedMagicLink: row.magic_link_url
+      ? {
+          url: String(row.magic_link_url),
+          label: row.magic_link_label ? String(row.magic_link_label) : 'Verification Link',
+          domain: row.magic_link_domain ? String(row.magic_link_domain) : 'link',
+          confidence: 0.95
         }
       : undefined,
     receivedAt: Number(row.received_at),

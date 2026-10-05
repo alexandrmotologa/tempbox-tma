@@ -1,9 +1,23 @@
 import React, { useState } from 'react';
-import { Copy, Check, Clock, Plus, Flame, RefreshCw, SlidersHorizontal, Webhook } from 'lucide-react';
+import {
+  Copy,
+  Check,
+  Clock,
+  Plus,
+  Flame,
+  RefreshCw,
+  SlidersHorizontal,
+  Webhook,
+  QrCode,
+  Settings,
+  ChevronDown
+} from 'lucide-react';
 import type { Mailbox } from '@tempbox/shared-types';
+import { sounds } from '../lib/sounds.js';
 
 interface MailboxHeaderProps {
   mailbox: Mailbox | null;
+  mailboxCount: number;
   activeTab: 'emails' | 'webhooks' | 'simulator';
   formattedTtl: string;
   percentRemaining: number;
@@ -11,6 +25,9 @@ interface MailboxHeaderProps {
   onRefresh: () => void;
   onGenerateNew: () => void;
   onOpenCustomAlias: () => void;
+  onOpenMailboxSwitcher: () => void;
+  onOpenQrCode: () => void;
+  onOpenSettings: () => void;
   onExtend: () => void;
   onPurge: () => void;
   onHaptic?: (type: 'light' | 'medium' | 'success') => void;
@@ -18,6 +35,7 @@ interface MailboxHeaderProps {
 
 export const MailboxHeader: React.FC<MailboxHeaderProps> = ({
   mailbox,
+  mailboxCount,
   activeTab,
   formattedTtl,
   percentRemaining,
@@ -25,6 +43,9 @@ export const MailboxHeader: React.FC<MailboxHeaderProps> = ({
   onRefresh,
   onGenerateNew,
   onOpenCustomAlias,
+  onOpenMailboxSwitcher,
+  onOpenQrCode,
+  onOpenSettings,
   onExtend,
   onPurge,
   onHaptic
@@ -36,6 +57,7 @@ export const MailboxHeader: React.FC<MailboxHeaderProps> = ({
   const currentDisplay = activeTab === 'webhooks' ? mailbox.webhookUrl : mailbox.address;
 
   const handleCopy = () => {
+    sounds.playCopySuccess();
     navigator.clipboard.writeText(currentDisplay);
     setCopied(true);
     onHaptic?.('success');
@@ -43,33 +65,58 @@ export const MailboxHeader: React.FC<MailboxHeaderProps> = ({
   };
 
   return (
-    <div className="bg-slate-900/90 border-b border-slate-800 p-4 sticky top-0 z-20 backdrop-blur-md">
-      {/* Top row: Status & Actions */}
+    <div className="bg-slate-900/90 border-b border-slate-800 p-3 sm:p-4 sticky top-0 z-20 backdrop-blur-md">
+      {/* Top row: Status, Multi-Inbox Switcher & Actions */}
       <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
-        <div className="flex items-center gap-2">
+        {/* Left: Switcher trigger */}
+        <button
+          onClick={() => {
+            sounds.playTap();
+            onHaptic?.('light');
+            onOpenMailboxSwitcher();
+          }}
+          className="flex items-center gap-1.5 px-2 py-1 bg-slate-800/80 hover:bg-slate-800 text-slate-300 rounded-lg border border-slate-700/60 transition-colors"
+          title="Switch mailbox"
+        >
           <span className="flex h-2 w-2 relative">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>
-          <span className="font-medium text-slate-300">
-            {activeTab === 'webhooks' ? 'Active Webhook Endpoint' : 'Active Disposable Inbox'}
+          <span className="font-semibold text-xs">
+            {mailboxCount > 1 ? `${mailboxCount} Inboxes` : 'Inbox 1'}
           </span>
-        </div>
+          <ChevronDown className="w-3 h-3 text-slate-400" />
+        </button>
 
-        <div className="flex items-center gap-1.5 font-mono text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded-full border border-slate-700/50">
-          <Clock className="w-3 h-3 text-sky-400" />
-          <span>{formattedTtl}</span>
+        {/* Right: Countdown & Settings */}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 font-mono text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded-full border border-slate-700/50 text-[11px]">
+            <Clock className="w-3 h-3 text-sky-400" />
+            <span>{formattedTtl}</span>
+          </div>
+
+          <button
+            onClick={() => {
+              sounds.playTap();
+              onHaptic?.('light');
+              onOpenSettings();
+            }}
+            className="p-1 text-slate-400 hover:text-slate-200 rounded-lg hover:bg-slate-800 transition-colors"
+            title="Settings & Privacy"
+          >
+            <Settings className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
       {/* Main Address / Webhook Card */}
-      <div
-        onClick={handleCopy}
-        className="group relative flex items-center justify-between p-3 bg-slate-950/80 hover:bg-slate-950 border border-slate-800 hover:border-sky-500/50 rounded-xl cursor-pointer transition-all active:scale-99 shadow-inner"
-      >
-        <div className="min-w-0 pr-3">
+      <div className="group relative flex items-center justify-between p-3 bg-slate-950/80 hover:bg-slate-950 border border-slate-800 hover:border-sky-500/50 rounded-xl transition-all shadow-inner">
+        <div
+          onClick={handleCopy}
+          className="min-w-0 pr-3 flex-1 cursor-pointer"
+        >
           <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold mb-0.5 flex items-center gap-1">
-            {activeTab === 'webhooks' ? <Webhook className="w-3 h-3" /> : null}
+            {activeTab === 'webhooks' ? <Webhook className="w-3 h-3 text-emerald-400" /> : null}
             <span>{activeTab === 'webhooks' ? 'Endpoint URL' : 'Email Address'}</span>
           </div>
           <div className="font-mono text-sm sm:text-base font-semibold text-sky-300 truncate group-hover:text-sky-200">
@@ -77,16 +124,32 @@ export const MailboxHeader: React.FC<MailboxHeaderProps> = ({
           </div>
         </div>
 
-        <button
-          className={`shrink-0 p-2 rounded-lg transition-all ${
-            copied
-              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-              : 'bg-slate-800 group-hover:bg-sky-500/20 text-slate-400 group-hover:text-sky-300 border border-slate-700'
-          }`}
-          title="Click to copy"
-        >
-          {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-        </button>
+        {/* Actions inside card: QR code & Copy */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            onClick={() => {
+              sounds.playTap();
+              onHaptic?.('light');
+              onOpenQrCode();
+            }}
+            className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-sky-300 rounded-lg border border-slate-700 transition-colors"
+            title="Show QR Code"
+          >
+            <QrCode className="w-4 h-4" />
+          </button>
+
+          <button
+            onClick={handleCopy}
+            className={`p-2 rounded-lg transition-all ${
+              copied
+                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                : 'bg-slate-800 group-hover:bg-sky-500/20 text-slate-400 group-hover:text-sky-300 border border-slate-700'
+            }`}
+            title="Click to copy"
+          >
+            {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+          </button>
+        </div>
       </div>
 
       {/* Lifespan Progress Bar */}
@@ -104,6 +167,7 @@ export const MailboxHeader: React.FC<MailboxHeaderProps> = ({
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => {
+              sounds.playTap();
               onHaptic?.('light');
               onGenerateNew();
             }}
@@ -116,6 +180,7 @@ export const MailboxHeader: React.FC<MailboxHeaderProps> = ({
 
           <button
             onClick={() => {
+              sounds.playTap();
               onHaptic?.('light');
               onOpenCustomAlias();
             }}
@@ -128,6 +193,7 @@ export const MailboxHeader: React.FC<MailboxHeaderProps> = ({
 
           <button
             onClick={() => {
+              sounds.playTap();
               onHaptic?.('light');
               onExtend();
             }}
@@ -142,6 +208,7 @@ export const MailboxHeader: React.FC<MailboxHeaderProps> = ({
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => {
+              sounds.playTap();
               onHaptic?.('light');
               onRefresh();
             }}

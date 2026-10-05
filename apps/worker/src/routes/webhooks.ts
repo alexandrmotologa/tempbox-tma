@@ -20,11 +20,11 @@ export async function handleIncomingWebhook(c: any) {
   const db: D1DatabaseCompat = c.env.DB;
   const token = c.req.param('token');
 
-  // Find mailbox by token
+  // Select mailbox with response config
   const mailbox = await db
-    .prepare('SELECT id, address, expires_at, telegram_user_id FROM mailboxes WHERE token = ? AND active = 1')
+    .prepare('SELECT id, address, expires_at, telegram_user_id, response_config_json FROM mailboxes WHERE token = ? AND active = 1')
     .bind(token)
-    .first<{ id: string; address: string; expires_at: number; telegram_user_id?: string }>();
+    .first<{ id: string; address: string; expires_at: number; telegram_user_id?: string; response_config_json?: string }>();
 
   if (!mailbox) {
     return c.json({ error: 'Invalid or expired webhook token' }, 404);
@@ -107,15 +107,37 @@ export async function handleIncomingWebhook(c: any) {
     );
   }
 
-  return c.json(
-    {
+  let responseConfig = {
+    statusCode: 200,
+    contentType: 'application/json',
+    responseBody: JSON.stringify({
       success: true,
       id,
       message: 'Webhook payload recorded',
       timestamp: now
-    },
-    200
-  );
+    }),
+    delayMs: 0
+  };
+
+  if (mailbox.response_config_json) {
+    try {
+      const parsed = JSON.parse(mailbox.response_config_json);
+      if (parsed.statusCode) responseConfig.statusCode = Number(parsed.statusCode);
+      if (parsed.contentType) responseConfig.contentType = parsed.contentType;
+      if (parsed.responseBody) responseConfig.responseBody = parsed.responseBody;
+      if (parsed.delayMs) responseConfig.delayMs = Number(parsed.delayMs);
+    } catch {
+      // ignore JSON parse error
+    }
+  }
+
+  if (responseConfig.delayMs > 0) {
+    await new Promise((resolve) => setTimeout(resolve, responseConfig.delayMs));
+  }
+
+  c.header('Content-Type', responseConfig.contentType);
+  c.status(responseConfig.statusCode);
+  return c.body(responseConfig.responseBody);
 }
 
 // GET /api/mailboxes/:id/webhooks
