@@ -159,21 +159,33 @@ export function App() {
   // Selected Webhook View
   if (selectedWebhook) {
     return (
-      <WebhookViewer
-        webhook={selectedWebhook}
-        onBack={() => setSelectedWebhook(null)}
-        onDelete={(id) => {
-          deleteWebhook(id);
-          setSelectedWebhook(null);
-        }}
-        onOpenMockConfig={() => setIsWebhookConfigOpen(true)}
-        onExportJson={() => {
-          if (mailbox) {
-            window.open(api.getExportUrl(mailbox.id), '_blank');
-          }
-        }}
-        onHaptic={triggerHaptic}
-      />
+      <>
+        <WebhookViewer
+          webhook={selectedWebhook}
+          onBack={() => setSelectedWebhook(null)}
+          onDelete={(id) => {
+            deleteWebhook(id);
+            setSelectedWebhook(null);
+          }}
+          onOpenMockConfig={() => setIsWebhookConfigOpen(true)}
+          onExportJson={() => {
+            if (mailbox) {
+              window.open(api.getExportUrl(mailbox.id), '_blank');
+            }
+          }}
+          onHaptic={triggerHaptic}
+        />
+        {mailbox && (
+          <WebhookConfigModal
+            isOpen={isWebhookConfigOpen}
+            onClose={() => setIsWebhookConfigOpen(false)}
+            mailboxId={mailbox.id}
+            initialConfig={mailbox.responseConfig}
+            onSaved={(cfg) => setResponseConfig(cfg)}
+            onHaptic={triggerHaptic}
+          />
+        )}
+      </>
     );
   }
 

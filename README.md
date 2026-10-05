@@ -1,6 +1,32 @@
-# TempBox TMA
+<p align="center">
+  <img src="docs/images/logo.png?raw=true" alt="TempBox TMA Logo" width="130" style="border-radius: 24px;" />
+</p>
 
-Disposable email and webhook inbox Telegram Mini App and Bot with instant push notifications, automatic verification code (OTP) extraction, and sandboxed rendering.
+<h1 align="center">TempBox TMA</h1>
+
+<p align="center">
+  Disposable email and webhook inbox Telegram Mini App and Bot with instant push notifications, automatic verification code (OTP) extraction, magic link detection, and sandboxed rendering.
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Telegram_Mini_App-React_19-0284c7?style=flat-square&logo=telegram" alt="Telegram Mini App" />
+  <img src="https://img.shields.io/badge/Worker_Gateway-Hono_on_Cloudflare-ea580c?style=flat-square&logo=cloudflare" alt="Cloudflare Worker" />
+  <img src="https://img.shields.io/badge/TypeScript-Strict_Monorepo-3178c6?style=flat-square&logo=typescript" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/License-MIT-emerald?style=flat-square" alt="License MIT" />
+</p>
+
+<p align="center">
+  <img src="docs/images/tempbox-tma_demo.gif?raw=true" alt="TempBox TMA Interactive Workflow Demo" width="380" style="border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.5);" />
+</p>
+
+## Interface Showcase
+
+<p align="center">
+  <img src="docs/images/tempbox-tma-1.png?raw=true" width="24%" alt="Main Inbox with OTP & Magic Links" />
+  <img src="docs/images/tempbox-tma-2.png?raw=true" width="24%" alt="Sandboxed Email Viewer" />
+  <img src="docs/images/tempbox-tma-3.png?raw=true" width="24%" alt="Webhook Request Inspector" />
+  <img src="docs/images/tempbox-tma-4.png?raw=true" width="24%" alt="Mock Response Configurator" />
+</p>
 
 ```
        Incoming Email                  Incoming Webhook

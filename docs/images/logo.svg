@@ -1,0 +1,165 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <!-- Luxury Squircle Clip -->
+    <clipPath id="squircle-clip">
+      <rect x="24" y="24" width="976" height="976" rx="220" />
+    </clipPath>
+
+    <!-- Electric Cyan Glow Gradients -->
+    <linearGradient id="cyan-glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="50%" stop-color="#00f5ff"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+
+    <linearGradient id="cyan-telemetry" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#00f5ff" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#0369a1" stop-opacity="0.2"/>
+    </linearGradient>
+
+    <!-- Obsidian Slate Shading Gradients (High Contrast Volumetric) -->
+    <linearGradient id="plate-highlight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#64748b"/>
+      <stop offset="100%" stop-color="#475569"/>
+    </linearGradient>
+
+    <linearGradient id="plate-light" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#475569"/>
+      <stop offset="100%" stop-color="#334155"/>
+    </linearGradient>
+
+    <linearGradient id="plate-mid" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#334155"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+
+    <linearGradient id="plate-dark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+
+    <linearGradient id="plate-deep" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#070b14"/>
+    </linearGradient>
+
+    <!-- Volumetric Drop Shadow -->
+    <filter id="subtle-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#000000" flood-opacity="0.16" />
+    </filter>
+  </defs>
+
+  <!-- Luxury White Squircle Container -->
+  <rect x="24" y="24" width="976" height="976" rx="220" fill="#ffffff" stroke="#e2e8f0" stroke-width="6" />
+
+  <g clip-path="url(#squircle-clip)">
+    <g transform="translate(512, 512)" filter="url(#subtle-shadow)">
+
+      <!-- Hexagonal Architectural Gateway Frame -->
+      <polygon points="
+        0,-390
+        338,-195
+        338,195
+        0,390
+        -338,195
+        -338,-195
+      " fill="none" stroke="#0f172a" stroke-width="36" stroke-linejoin="round" />
+
+      <!-- Inner Precision Telemetry Ring -->
+      <polygon points="
+        0,-355
+        307,-177
+        307,177
+        0,355
+        -307,177
+        -307,-177
+      " fill="none" stroke="#00f5ff" stroke-width="3.5" opacity="0.45" stroke-dasharray="14, 10" />
+
+      <!-- 100% Watertight Solid Base Silhouette (Zero-Leak Rule) -->
+      <!-- Wide-Eared Origami Desert Radar Fennec Fox -->
+      <path d="
+        M 0,-170
+        L 65,-205 L 180,-275 L 315,-335 L 330,-290 L 290,-165 L 245,-45 L 260,50 L 185,155 L 105,235 L 0,275
+        L -105,235 L -185,155 L -260,50 L -245,-45 L -290,-165 L -330,-290 L -315,-335 L -180,-275 L -65,-205 Z
+      " fill="#070b14" />
+
+      <!-- RADAR EARS: Massive Outward-Flared Fennec Radar Wings -->
+      <!-- Left Ear (Viewer's Right) -->
+      <polygon points="65,-205 180,-275 315,-335 225,-200" fill="url(#plate-light)" stroke="#070b14" stroke-width="2" />
+      <polygon points="315,-335 330,-290 290,-165 225,-200" fill="url(#plate-mid)" stroke="#070b14" stroke-width="2" />
+      <polygon points="225,-200 290,-165 245,-45 155,-105" fill="url(#plate-dark)" stroke="#070b14" stroke-width="2" />
+      <polygon points="65,-205 225,-200 155,-105 50,-125" fill="url(#plate-deep)" stroke="#070b14" stroke-width="2" />
+
+      <!-- Left Ear Telemetry Conduits -->
+      <polygon points="135,-225 225,-195 170,-115 100,-140" fill="url(#cyan-telemetry)" stroke="#070b14" stroke-width="1.5" />
+      <polyline points="155,-215 205,-190 160,-130" fill="none" stroke="#00f5ff" stroke-width="2" opacity="0.85" />
+      <circle cx="205" cy="-190" r="3" fill="#00f5ff" />
+
+      <!-- Right Ear (Viewer's Left) -->
+      <polygon points="-65,-205 -180,-275 -315,-335 -225,-200" fill="url(#plate-highlight)" stroke="#070b14" stroke-width="2" />
+      <polygon points="-315,-335 -330,-290 -290,-165 -225,-200" fill="url(#plate-light)" stroke="#070b14" stroke-width="2" />
+      <polygon points="-225,-200 -290,-165 -245,-45 -155,-105" fill="url(#plate-mid)" stroke="#070b14" stroke-width="2" />
+      <polygon points="-65,-205 -225,-200 -155,-105 -50,-125" fill="url(#plate-dark)" stroke="#070b14" stroke-width="2" />
+
+      <!-- Right Ear Telemetry Conduits -->
+      <polygon points="-135,-225 -225,-195 -170,-115 -100,-140" fill="url(#cyan-telemetry)" stroke="#070b14" stroke-width="1.5" />
+      <polyline points="-155,-215 -205,-190 -160,-130" fill="none" stroke="#00f5ff" stroke-width="2" opacity="0.85" />
+      <circle cx="-205" cy="-190" r="3" fill="#00f5ff" />
+
+      <!-- FOREHEAD & CRANIAL CREST -->
+      <polygon points="0,-170 65,-205 50,-125 0,-105" fill="url(#plate-light)" stroke="#070b14" stroke-width="2" />
+      <polygon points="0,-170 -65,-205 -50,-125 0,-105" fill="url(#plate-highlight)" stroke="#070b14" stroke-width="2" />
+      <polygon points="0,-105 50,-125 75,-35 0,-20" fill="url(#plate-mid)" stroke="#070b14" stroke-width="2" />
+      <polygon points="0,-105 -50,-125 -75,-35 0,-20" fill="url(#plate-light)" stroke="#070b14" stroke-width="2" />
+
+      <!-- CHEEKS & ZYGOMATIC FACETS -->
+      <!-- Left Cheek -->
+      <polygon points="50,-125 155,-105 175,-20 75,-35" fill="url(#plate-mid)" stroke="#070b14" stroke-width="2" />
+      <polygon points="155,-105 245,-45 260,50 175,-20" fill="url(#plate-dark)" stroke="#070b14" stroke-width="2" />
+      <polygon points="75,-35 175,-20 185,65 95,35" fill="url(#plate-deep)" stroke="#070b14" stroke-width="2" />
+      <polygon points="175,-20 260,50 185,65" fill="url(#plate-mid)" stroke="#070b14" stroke-width="2" />
+
+      <!-- Right Cheek -->
+      <polygon points="-50,-125 -155,-105 -175,-20 -75,-35" fill="url(#plate-light)" stroke="#070b14" stroke-width="2" />
+      <polygon points="-155,-105 -245,-45 -260,50 -175,-20" fill="url(#plate-mid)" stroke="#070b14" stroke-width="2" />
+      <polygon points="-75,-35 -175,-20 -185,65 -95,35" fill="url(#plate-dark)" stroke="#070b14" stroke-width="2" />
+      <polygon points="-175,-20 -260,50 -185,65" fill="url(#plate-light)" stroke="#070b14" stroke-width="2" />
+
+      <!-- MUZZLE & NOSE (Compact, tapered fox snout) -->
+      <polygon points="0,-20 40,-15 45,45 0,65" fill="url(#plate-mid)" stroke="#070b14" stroke-width="2" />
+      <polygon points="0,-20 -40,-15 -45,45 0,65" fill="url(#plate-light)" stroke="#070b14" stroke-width="2" />
+      <polygon points="40,-15 75,-35 95,35 45,45" fill="url(#plate-dark)" stroke="#070b14" stroke-width="2" />
+      <polygon points="-40,-15 -75,-35 -95,35 -45,45" fill="url(#plate-mid)" stroke="#070b14" stroke-width="2" />
+
+      <!-- NOSE APEX -->
+      <polygon points="0,48 18,66 0,80 -18,66" fill="#070b14" stroke="#00f5ff" stroke-width="1.6" />
+
+      <!-- PREDATOR ALMOND OPTICS (Electric Cyan Radar Gaze) -->
+      <!-- Left Eye -->
+      <polygon points="26,-12 70,-24 50,8 22,2" fill="#070b14" stroke="#070b14" stroke-width="2" />
+      <polygon points="30,-10 65,-20 47,6 26,0" fill="url(#cyan-glow)" />
+      <polygon points="42,-14 50,-12 44,-2 39,-4" fill="#ffffff" />
+
+      <!-- Right Eye -->
+      <polygon points="-26,-12 -70,-24 -50,8 -22,2" fill="#070b14" stroke="#070b14" stroke-width="2" />
+      <polygon points="-30,-10 -65,-20 -47,6 -26,0" fill="url(#cyan-glow)" />
+      <polygon points="-42,-14 -50,-12 -44,-2 -39,-4" fill="#ffffff" />
+
+      <!-- LOWER JAW & ENVELOPE CHEST ARMOR (Packet Negative Space Fold) -->
+      <polygon points="0,65 45,45 55,120 0,145" fill="url(#plate-dark)" stroke="#070b14" stroke-width="2" />
+      <polygon points="0,65 -45,45 -55,120 0,145" fill="url(#plate-mid)" stroke="#070b14" stroke-width="2" />
+      
+      <!-- Envelope Flap Creases -->
+      <polygon points="0,145 80,120 105,235 0,275" fill="url(#plate-deep)" stroke="#070b14" stroke-width="2" />
+      <polygon points="0,145 -80,120 -105,235 0,275" fill="url(#plate-dark)" stroke="#070b14" stroke-width="2" />
+      <polygon points="80,120 185,65 185,155 105,235" fill="url(#plate-mid)" stroke="#070b14" stroke-width="2" />
+      <polygon points="-80,120 -185,65 -185,155 -105,235" fill="url(#plate-light)" stroke="#070b14" stroke-width="2" />
+
+      <!-- Chest Envelope V-Line Accent with Pulse Point -->
+      <polyline points="-65,135 0,185 65,135" fill="none" stroke="#00f5ff" stroke-width="3" opacity="0.8" stroke-linecap="round" />
+      <circle cx="0" cy="185" r="5" fill="#00f5ff" />
+      <circle cx="0" cy="185" r="9" fill="none" stroke="#00f5ff" stroke-width="1.5" opacity="0.4" />
+
+    </g>
+  </g>
+</svg>
